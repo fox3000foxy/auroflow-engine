@@ -46,6 +46,18 @@ jobs:
           qemu-system-x86_64 --version
           qemu-system-x86_64 -machine help | grep -w pc-q35-10.0
 
+      - name: Prepare Python environment
+        run: |
+          python3 -m venv "$VM_ROOT/venv"
+          "$VM_ROOT/venv/bin/pip" -q install huggingface_hub
+
+      - name: Initialize persistence
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_REPO: ${{ vars.HF_REPO }}
+        run: |
+          "$VM_ROOT/venv/bin/python" scripts/init-persistence.py
+
       - name: Download Golden Image
         run: bash scripts/download-golden.sh
 
