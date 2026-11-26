@@ -17,7 +17,6 @@ jobs:
 
     env:
       GOLDEN_REPO: fox3000foxy/windows10-golden
-      GOLDEN_TAG: golden-v1.0
       VM_MODE: fresh
 
     steps:
@@ -80,7 +79,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/golden-cache
-          key: golden-7479cbf22ad8ec2e9d7cc6ec6d79c45ded8f46d52894521d7b20f7f2f5b52366
+          key: golden-${{ hashFiles('golden.env') }}
 
       - name: Download Golden Image
         run: |
