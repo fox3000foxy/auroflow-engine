@@ -145,8 +145,14 @@ jobs:
           python3 -c 'import ipaddress,os; n=ipaddress.ip_network(os.environ["RDP_ALLOWED_CIDR"],strict=True); assert n.version==4 and n.prefixlen==32, "A single IPv4 address is required"'
 
           nohup ngrok tcp 3390 --cidr-allow "$RDP_ALLOWED_CIDR" --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
+          NGROK_PID=$!
 
           for i in $(seq 1 30); do
+            if ! kill -0 "$NGROK_PID" 2>/dev/null; then
+              echo "[NGROK] Process exited unexpectedly"
+              cat "$VM_ROOT/ngrok.log"
+              exit 1
+            fi
             ADDRESS=$(curl -fsS http://127.0.0.1:4040/api/tunnels |
               python3 -c 'import json,sys; print(next((t["public_url"] for t in json.load(sys.stdin)["tunnels"] if t["proto"] == "tcp"), ""))' 2>/dev/null || true)
 
