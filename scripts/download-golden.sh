@@ -61,7 +61,6 @@ cat windows10-golden.qcow2.part-* \
 sha256sum -c windows10-golden.qcow2.sha256
 qemu-img check windows10-golden.qcow2
 
-echo "$HASH  windows10-golden.qcow2" | sha256sum -c -
 mv windows10-golden.qcow2 "$CACHE/"
 cp vm-state.tar.gz "$CACHE/"
 ln "$CACHE/windows10-golden.qcow2" "$R/windows10-golden.qcow2"

@@ -77,13 +77,20 @@ jobs:
 
       - name: Restore Golden Image cache
         id: golden-cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/golden-cache
           key: golden-7479cbf22ad8ec2e9d7cc6ec6d79c45ded8f46d52894521d7b20f7f2f5b52366
 
       - name: Download Golden Image
-        run: bash scripts/download-golden.sh
+        run: /usr/bin/time -f "[BENCHMARK] Golden preparation: %e seconds" bash scripts/download-golden.sh
+
+      - name: Save Golden Image cache
+        if: steps.golden-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/golden-cache
+          key: ${{ steps.golden-cache.outputs.cache-primary-key }}
 
       - name: Restore layers
         env:
