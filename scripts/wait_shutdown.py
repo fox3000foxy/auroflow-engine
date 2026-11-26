@@ -51,8 +51,9 @@ while True:
         for _ in range(300):
             try:
                 os.kill(qemu_pid, 0)
-                running = True
-            except ProcessLookupError:
+                stat = Path(f"/proc/{qemu_pid}/stat").read_text()
+                running = stat.rsplit(") ", 1)[1][0] != "Z"
+            except (ProcessLookupError, FileNotFoundError):
                 running = False
 
             if not running and Path(root, "tpm-stopped").exists():
