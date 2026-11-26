@@ -134,6 +134,27 @@ jobs:
 
       # Reserved: authenticated ngrok RDP tunnel.
 
+      - name: Start ngrok RDP tunnel
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+        run: |
+          test -n "$NGROK_AUTHTOKEN"
+          nohup ngrok tcp 3390 --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
+
+          for i in $(seq 1 30); do
+            ADDRESS=$(curl -fsS http://127.0.0.1:4040/api/tunnels |
+              python3 -c 'import json,sys; print(next((t["public_url"] for t in json.load(sys.stdin)["tunnels"] if t["proto"] == "tcp"), ""))' 2>/dev/null || true)
+
+            if [ -n "$ADDRESS" ]; then
+              echo "::notice title=RDP address::$ADDRESS"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          cat "$VM_ROOT/ngrok.log"
+          exit 1
+
       - name: Wait for shutdown
         run: python3 scripts/wait_shutdown.py
 
