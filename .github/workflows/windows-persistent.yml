@@ -75,6 +75,13 @@ jobs:
         run: |
           "$VM_ROOT/venv/bin/python" scripts/init-persistence.py
 
+      - name: Restore Golden Image cache
+        id: golden-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/golden-cache
+          key: golden-7479cbf22ad8ec2e9d7cc6ec6d79c45ded8f46d52894521d7b20f7f2f5b52366
+
       - name: Download Golden Image
         run: bash scripts/download-golden.sh
 
@@ -82,6 +89,21 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: bash scripts/restore-layers.sh
+
+      - name: Restore ngrok cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/ngrok
+          key: ngrok-${{ runner.os }}-${{ runner.arch }}-v1
+
+      - name: Install ngrok
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          if [ ! -x "$HOME/.local/bin/ngrok" ]; then
+            curl -fsSL --retry 3 https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz | tar -xz -C "$HOME/.local/bin" ngrok
+          fi
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/ngrok" version
 
       - name: Boot Windows
         run: |

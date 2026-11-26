@@ -5,6 +5,24 @@ REPO="${GOLDEN_REPO:-fox3000foxy/windows10-golden}"
 TAG="${GOLDEN_TAG:-golden-v1.0}"
 R="${VM_ROOT:?VM_ROOT is required}"
 
+CACHE="${RUNNER_TEMP:-/tmp}/golden-cache"
+HASH="7479cbf22ad8ec2e9d7cc6ec6d79c45ded8f46d52894521d7b20f7f2f5b52366"
+
+mkdir -p "$CACHE"
+
+if [[ -f "$CACHE/windows10-golden.qcow2" && -f "$CACHE/vm-state.tar.gz" ]]; then
+    echo "$HASH  $CACHE/windows10-golden.qcow2" | sha256sum -c -
+    qemu-img check "$CACHE/windows10-golden.qcow2"
+
+    ln "$CACHE/windows10-golden.qcow2" "$R/windows10-golden.qcow2"
+    tar -xzf "$CACHE/vm-state.tar.gz" -C "$R"
+
+    chmod 444 "$R/windows10-golden.qcow2"
+
+    echo "[GOLDEN] Restored from cache"
+    exit 0
+fi
+
 mkdir -p "$R/download"
 cd "$R/download"
 
@@ -43,7 +61,10 @@ cat windows10-golden.qcow2.part-* \
 sha256sum -c windows10-golden.qcow2.sha256
 qemu-img check windows10-golden.qcow2
 
-mv windows10-golden.qcow2 "$R/"
+echo "$HASH  windows10-golden.qcow2" | sha256sum -c -
+mv windows10-golden.qcow2 "$CACHE/"
+cp vm-state.tar.gz "$CACHE/"
+ln "$CACHE/windows10-golden.qcow2" "$R/windows10-golden.qcow2"
 tar -xzf vm-state.tar.gz -C "$R"
 
 chmod 444 "$R/windows10-golden.qcow2"
