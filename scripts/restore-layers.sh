@@ -8,7 +8,7 @@ cd "$R"
 
 case "$MODE" in
     fresh)
-        echo "[LAYERS] Creating a fresh overlay"
+        echo "[LAYERS] Creating fresh overlay"
 
         qemu-img create \
             -f qcow2 \
@@ -18,8 +18,11 @@ case "$MODE" in
         ;;
 
     persistent)
-        echo "[LAYERS] Persistent restoration not implemented yet"
-        exit 1
+        echo "[LAYERS] Restoring persistent chain"
+
+        "$R/venv/bin/python" \
+            "$GITHUB_WORKSPACE/scripts/persistence.py" \
+            restore
         ;;
 
     *)
