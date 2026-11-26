@@ -144,7 +144,7 @@ jobs:
 
           python3 -c 'import ipaddress,os; n=ipaddress.ip_network(os.environ["RDP_ALLOWED_CIDR"],strict=True); assert n.version==4 and n.prefixlen==32, "A single IPv4 address is required"'
 
-          nohup ngrok tcp 3390 --cidr-allow "$RDP_ALLOWED_CIDR" --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
+          nohup ngrok tcp 3390 --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
           NGROK_PID=$!
 
           for i in $(seq 1 30); do
