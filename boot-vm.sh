@@ -30,7 +30,7 @@ if [[ -f "$R/tpm.pid" ]] && \
     exit 1
 fi
 
-rm -f "$R/tpm.sock" "$R/tpm.pid"
+rm -f "$R/tpm.sock" "$R/tpm.pid" "$R/tpm-stopped" "$R/clean"
 
 swtpm socket \
   --tpm2 \
@@ -41,8 +41,25 @@ swtpm socket \
 
 cleanup() {
     if [[ -f "$R/tpm.pid" ]]; then
-        kill "$(cat "$R/tpm.pid")" 2>/dev/null || true
+        local pid
+        pid=$(cat "$R/tpm.pid")
+
+        kill -TERM "$pid" 2>/dev/null || true
+
+        for i in $(seq 1 100); do
+            if ! kill -0 "$pid" 2>/dev/null; then
+                rm -f "$R/tpm.pid" "$R/tpm.sock"
+                touch "$R/tpm-stopped"
+                return 0
+            fi
+            sleep 0.1
+        done
+
+        echo "[TPM] Shutdown timeout" >&2
+        return 1
     fi
+
+    return 1
 }
 
 trap cleanup EXIT
@@ -120,4 +137,5 @@ qemu-system-x86_64 \
   -audiodev none,id=audio1 \
   -device VGA,id=video0,vgamem_mb=16,bus=pcie.0,addr=0x1 \
   -display none \
+  -pidfile "$R/qemu.pid" \
   -qmp "unix:$R/qmp.sock,server=on,wait=off"

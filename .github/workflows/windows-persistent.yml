@@ -26,7 +26,7 @@ jobs:
       - name: Initialize
         run: |
           echo "VM_ROOT=$(mktemp -d "$RUNNER_TEMP/windows.XXXXXXXX")" >> "$GITHUB_ENV"
-          echo "DEADLINE=$(($(date +%s)+289*60))" >> "$GITHUB_ENV"
+          echo "DEADLINE=$(($(date +%s)+287*60))" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: |
