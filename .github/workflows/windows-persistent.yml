@@ -2,18 +2,6 @@ name: Windows Golden VM
 
 on:
   workflow_dispatch:
-    inputs:
-      duration:
-        description: Session duration in minutes
-        required: true
-        default: '60'
-        type: choice
-        options:
-          - '15'
-          - '30'
-          - '60'
-          - '120'
-          - '240'
 
 permissions:
   contents: read
@@ -38,6 +26,7 @@ jobs:
       - name: Initialize
         run: |
           echo "VM_ROOT=$(mktemp -d "$RUNNER_TEMP/windows.XXXXXXXX")" >> "$GITHUB_ENV"
+          echo "DEADLINE=$(($(date +%s)+289*60))" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: |
@@ -93,11 +82,7 @@ jobs:
       # Reserved: authenticated ngrok RDP tunnel.
 
       - name: Wait for shutdown
-        env:
-          DURATION: ${{ inputs.duration }}
-        run: |
-          export DEADLINE=$(($(date +%s)+DURATION*60))
-          python3 scripts/wait_shutdown.py
+        run: python3 scripts/wait_shutdown.py
 
       # Reserved: persistent layer compression and publication.
 
