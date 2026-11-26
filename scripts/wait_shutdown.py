@@ -1,6 +1,7 @@
 import json
 import os
 import socket
+import subprocess
 import time
 from pathlib import Path
 
@@ -35,6 +36,8 @@ def cmd(name):
 cmd("qmp_capabilities")
 
 requested = False
+next_poll = 0
+shutdown_deadline = deadline + 120
 
 print("[VM] Waiting for guest shutdown", flush=True)
 
@@ -68,12 +71,33 @@ while True:
 
         break
 
+    if not requested and time.monotonic() >= next_poll:
+        next_poll = time.monotonic() + 15
+
+        if os.environ.get("GH_TOKEN"):
+            try:
+                result = subprocess.check_output(
+                    ["python3", str(Path(__file__).with_name("panel-control.py")),
+                     "shutdown"],
+                    text=True,
+                    timeout=10
+                ).strip()
+
+                if result:
+                    print("[PANEL] Remote shutdown requested", flush=True)
+                    cmd("system_powerdown")
+                    requested = True
+                    shutdown_deadline = time.time() + 120
+
+            except (subprocess.SubprocessError, OSError):
+                print("[PANEL] Control polling failed", flush=True)
+
     if time.time() >= deadline and not requested:
         print("[VM] Requesting ACPI shutdown", flush=True)
         cmd("system_powerdown")
         requested = True
 
-    if time.time() >= deadline + 120:
+    if time.time() >= shutdown_deadline:
         raise RuntimeError("Guest shutdown timeout")
 
     time.sleep(2)

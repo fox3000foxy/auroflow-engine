@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  issues: read
 
 concurrency:
   group: windows-golden
@@ -135,15 +136,22 @@ jobs:
       - name: Start ngrok RDP tunnel
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          RDP_ALLOWED_CIDR: ${{ vars.RDP_ALLOWED_CIDR }}
         run: |
           test -n "$NGROK_AUTHTOKEN"
-          nohup ngrok tcp 3390 --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
+          test -n "$RDP_ALLOWED_CIDR"
+
+          python3 -c 'import ipaddress,os; n=ipaddress.ip_network(os.environ["RDP_ALLOWED_CIDR"],strict=True); assert n.version==4 and n.prefixlen==32, "A single IPv4 address is required"'
+
+          nohup ngrok tcp 3390 --cidr-allow "$RDP_ALLOWED_CIDR" --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
 
           for i in $(seq 1 30); do
             ADDRESS=$(curl -fsS http://127.0.0.1:4040/api/tunnels |
               python3 -c 'import json,sys; print(next((t["public_url"] for t in json.load(sys.stdin)["tunnels"] if t["proto"] == "tcp"), ""))' 2>/dev/null || true)
 
             if [ -n "$ADDRESS" ]; then
+              python3 scripts/panel-control.py publish "$ADDRESS"
               echo "::notice title=RDP address::$ADDRESS"
               exit 0
             fi
@@ -154,6 +162,8 @@ jobs:
           exit 1
 
       - name: Wait for shutdown
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: python3 scripts/wait_shutdown.py
 
       - name: Save persistent layers
