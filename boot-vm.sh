@@ -13,6 +13,8 @@ CPU="${VM_CPU:-$(nproc)}"
 RAM="${VM_RAM:-$RAM}"
 
 test "$RAM" -ge 4096
+echo "[VM] Allocated RAM: ${RAM} MiB"
+echo "[VM] Allocated vCPUs: ${CPU}"
 test -f "$FIRMWARE"
 test -f "$R/disk.qcow2"
 test -f "$R/OVMF_VARS.fd"
