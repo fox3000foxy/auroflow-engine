@@ -32,19 +32,50 @@ jobs:
         run: |
           echo "os=$(lsb_release -rs)" >> "$GITHUB_OUTPUT"
 
-      - name: Restore cached dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1
+      - name: Prepare APT
+        id: apt
+        run: |
+          sudo apt-get update -qq
+
+          PACKAGES="qemu-system-x86 qemu-utils qemu-block-extra ovmf swtpm swtpm-tools socat"
+
+          echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
+
+          HASH=$(apt-get --print-uris -y install $PACKAGES | sha256sum | cut -d' ' -f1)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Restore APT cache
+        id: apt-cache
+        uses: actions/cache/restore@v4
         with:
-          packages: qemu-system-x86 qemu-utils qemu-block-extra ovmf swtpm swtpm-tools socat
-          version: ${{ steps.system.outputs.os }}-golden-v1
+          path: ${{ runner.temp }}/apt-cache
+          key: apt-${{ runner.os }}-${{ runner.arch }}-${{ steps.system.outputs.os }}-${{ steps.apt.outputs.hash }}
+
+      - name: Download APT dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/apt-cache/partial"
+
+          sudo apt-get -y --download-only \
+            -o Dir::Cache::archives="$RUNNER_TEMP/apt-cache" \
+            install ${{ steps.apt.outputs.packages }}
+
+          sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/apt-cache"
+
+          du -sh "$RUNNER_TEMP/apt-cache"
+          ls -lh "$RUNNER_TEMP/apt-cache/"*.deb
+
+      - name: Save APT cache
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/apt-cache
+          key: ${{ steps.apt-cache.outputs.cache-primary-key }}
 
       - name: Install dependencies
         run: |
-          sudo apt-get update -qq
           sudo apt-get install -y \
-            qemu-system-x86 qemu-utils \
-            qemu-block-extra ovmf \
-            swtpm swtpm-tools socat
+            -o Dir::Cache::archives="$RUNNER_TEMP/apt-cache" \
+            ${{ steps.apt.outputs.packages }}
 
       - name: Verify virtualization
         run: |
