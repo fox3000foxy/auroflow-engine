@@ -9,7 +9,8 @@ ISO="${WINDOWS_ISO:-$R/windows-install.iso}"
 FIRMWARE="${OVMF_FIRMWARE:-/usr/share/OVMF/OVMF_CODE_4M.ms.fd}"
 
 RAM=$(( ($(awk '/MemAvailable:/ {print int($2/1024)}' /proc/meminfo)-1024)/256*256 ))
-CPU=$(nproc)
+CPU="${VM_CPU:-$(nproc)}"
+RAM="${VM_RAM:-$RAM}"
 
 test "$RAM" -ge 4096
 test -f "$FIRMWARE"
@@ -89,6 +90,7 @@ qemu-system-x86_64 \
   -smp "$CPU",sockets="$CPU",cores=1,threads=1 \
   -m "$RAM" \
   -no-user-config \
+  -no-shutdown \
   -nodefaults \
   -rtc base=localtime,driftfix=slew \
   -global kvm-pit.lost_tick_policy=delay \
@@ -117,5 +119,5 @@ qemu-system-x86_64 \
   -device "virtio-net-pci,netdev=hostnet0,id=net0,mac=$MAC,bus=pci.1,addr=0x0" \
   -audiodev none,id=audio1 \
   -device VGA,id=video0,vgamem_mb=16,bus=pcie.0,addr=0x1 \
-  -display none -vnc 127.0.0.1:0 \
+  -display none \
   -qmp "unix:$R/qmp.sock,server=on,wait=off"
