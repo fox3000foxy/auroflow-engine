@@ -28,6 +28,17 @@ jobs:
           echo "VM_ROOT=$(mktemp -d "$RUNNER_TEMP/windows.XXXXXXXX")" >> "$GITHUB_ENV"
           echo "DEADLINE=$(($(date +%s)+287*60))" >> "$GITHUB_ENV"
 
+      - name: Identify runner
+        id: system
+        run: |
+          echo "os=$(lsb_release -rs)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cached dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: qemu-system-x86 qemu-utils qemu-block-extra ovmf swtpm swtpm-tools socat
+          version: ${{ steps.system.outputs.os }}-golden-v1
+
       - name: Install dependencies
         run: |
           sudo apt-get update -qq
@@ -45,6 +56,12 @@ jobs:
           sudo chmod 666 /dev/kvm
           qemu-system-x86_64 --version
           qemu-system-x86_64 -machine help | grep -w pc-q35-10.0
+
+      - name: Restore Python package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ runner.arch }}-golden-v1
 
       - name: Prepare Python environment
         run: |
