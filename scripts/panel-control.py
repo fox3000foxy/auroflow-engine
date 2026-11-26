@@ -60,11 +60,10 @@ def shutdown_requested():
     issues = json.loads(gh(
         "api", "--paginate",
         f"repos/{repo}/issues?state=open&per_page=100",
-        "--jq", ".[]",
         "--slurp"
     ))
 
-    for issue in issues:
+    for issue in (item for page in issues for item in page):
         if issue.get("title") != f"Golden shutdown {run_id}":
             continue
 
