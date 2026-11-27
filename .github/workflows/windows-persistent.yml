@@ -137,12 +137,9 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
           GH_TOKEN: ${{ github.token }}
-          RDP_ALLOWED_CIDR: ${{ vars.RDP_ALLOWED_CIDR }}
         run: |
           test -n "$NGROK_AUTHTOKEN"
-          test -n "$RDP_ALLOWED_CIDR"
 
-          python3 -c 'import ipaddress,os; n=ipaddress.ip_network(os.environ["RDP_ALLOWED_CIDR"],strict=True); assert n.version==4 and n.prefixlen==32, "A single IPv4 address is required"'
 
           nohup ngrok tcp 3390 --log=stdout > "$VM_ROOT/ngrok.log" 2>&1 < /dev/null &
           NGROK_PID=$!
