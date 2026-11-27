@@ -19,6 +19,8 @@ jobs:
     env:
       GOLDEN_REPO: fox3000foxy/auroflow-engine
       VM_MODE: fresh
+      GOLDEN_URL: ${{ vars.GOLDEN_URL }}
+      GOLDEN_SHA256: ${{ vars.GOLDEN_SHA256 }}
 
     steps:
       - uses: actions/checkout@v5
@@ -68,17 +70,24 @@ jobs:
 
       - name: Restore Golden Image cache
         id: golden-cache
+        if: vars.GOLDEN_URL == ''
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/golden-cache
           key: golden-${{ hashFiles('golden.env') }}
 
       - name: Download Golden Image
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          /usr/bin/time -f "[BENCHMARK] Golden preparation: %e seconds" bash scripts/download-golden.sh
+          if [ -n "$GOLDEN_URL" ]; then
+            "$VM_ROOT/venv/bin/python" scripts/download-custom-golden.py
+          else
+            /usr/bin/time -f "[BENCHMARK] Golden preparation: %e seconds" bash scripts/download-golden.sh
+          fi
 
       - name: Save Golden Image cache
-        if: steps.golden-cache.outputs.cache-hit != 'true'
+        if: vars.GOLDEN_URL == '' && steps.golden-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/golden-cache
