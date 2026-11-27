@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/golden.env"
 
-REPO="${GOLDEN_REPO:-fox3000foxy/windows10-golden}"
+REPO="${GOLDEN_REPO:-fox3000foxy/auroflow-engine}"
 TAG="$GOLDEN_TAG"
 HASH="$GOLDEN_HASH"
 R="${VM_ROOT:?VM_ROOT is required}"

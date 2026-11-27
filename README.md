@@ -1,4 +1,4 @@
-# Windows 10 Golden Image
+# AuroFlow Engine
 
 ![Windows](https://img.shields.io/badge/Windows-10%20IoT%20LTSC%202021-0078D6?logo=windows&logoColor=white)
 ![QEMU](https://img.shields.io/badge/QEMU-10.0+-FF6600?logo=qemu&logoColor=white)
@@ -6,7 +6,7 @@
 ![Size](https://img.shields.io/badge/Image-4.82%20GiB-brightgreen)
 ![RDP](https://img.shields.io/badge/RDP-60%20FPS-blue)
 ![Persistence](https://img.shields.io/badge/Persistence-Hugging%20Face-yellow?logo=huggingface)
-[![GitHub Actions](https://github.com/fox3000foxy/windows10-golden/actions/workflows/windows-persistent.yml/badge.svg)](https://github.com/fox3000foxy/windows10-golden/actions/workflows/windows-persistent.yml)
+[![GitHub Actions](https://github.com/fox3000foxy/auroflow-engine/actions/workflows/windows-persistent.yml/badge.svg)](https://github.com/fox3000foxy/auroflow-engine/actions/workflows/windows-persistent.yml)
 
 A lightweight, debloated and performance-oriented Windows 10 IoT Enterprise LTSC 2021 golden image for QEMU/KVM, featuring automated deployment, RDP connectivity and persistent storage across ephemeral runners.
 
@@ -251,8 +251,8 @@ The total cached preparation time includes cache restoration. Actual results dep
 
 Reference executions:
 
-- [Cold cache execution](https://github.com/fox3000foxy/windows10-golden/actions/runs/45795416829)
-- [Successful persistence execution](https://github.com/fox3000foxy/windows10-golden/actions/runs/45796701342)
+- [Cold cache execution](https://github.com/fox3000foxy/auroflow-engine/actions/runs/45795416829)
+- [Successful persistence execution](https://github.com/fox3000foxy/auroflow-engine/actions/runs/45796701342)
 
 ## Session lifecycle
 
@@ -281,7 +281,7 @@ If Windows or the hypervisor cannot shut down cleanly, the backup is skipped to 
 ```bash
 sudo apt install qemu-system-x86 qemu-utils qemu-block-extra ovmf swtpm swtpm-tools gh
 
-git clone https://github.com/fox3000foxy/windows10-golden.git
+git clone https://github.com/fox3000foxy/auroflow-engine.git
 cd windows10-golden
 
 gh release download golden-v1.0

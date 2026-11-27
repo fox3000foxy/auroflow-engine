@@ -1,4 +1,4 @@
-name: Windows Golden VM
+name: AuroFlow VM
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 300
 
     env:
-      GOLDEN_REPO: fox3000foxy/windows10-golden
+      GOLDEN_REPO: fox3000foxy/auroflow-engine
       VM_MODE: fresh
 
     steps:
